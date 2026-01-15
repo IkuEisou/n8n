@@ -38,6 +38,7 @@ services:
       - N8N_RUNNERS_CONFIG_PATH=/etc/n8n-task-runners.json
     volumes:
       - ./n8n-task-runners.json:/etc/n8n-task-runners.json
+      - n8n_data:/home/node/.n8n
     depends_on:
       - n8n
 
