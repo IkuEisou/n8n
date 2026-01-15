@@ -18,13 +18,15 @@ services:
       - N8N_RUNNERS_PYTHON_ENABLE=true
       - N8N_EDITOR_BASE_URL=http://localhost:5678/
       - WEBHOOK_URL=http://localhost:5678/
+      - N8N_RUNNERS_CONFIG_PATH=/etc/n8n-task-runners.json
     command: start
     volumes:
       - n8n_data:/home/node/.n8n
       - ./n8n_files:/data
+      - ./n8n-task-runners.json:/etc/n8n-task-runners.json
 
   n8n-runner-python:
-    image: n8nio/runners:latest
+    build: .
     container_name: n8n-runner-python
     restart: always
     command: python
@@ -33,6 +35,9 @@ services:
       - N8N_RUNNERS_MODE=external
       - N8N_RUNNERS_AUTH_TOKEN=af5c543f1b8f989fd2f3500dcf399dc8860746bda8de4cf1fef1cc3981501684
       - N8N_RUNNERS_TASK_BROKER_URI=http://n8n:5679
+      - N8N_RUNNERS_CONFIG_PATH=/etc/n8n-task-runners.json
+    volumes:
+      - ./n8n-task-runners.json:/etc/n8n-task-runners.json
     depends_on:
       - n8n
 

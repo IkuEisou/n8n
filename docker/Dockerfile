@@ -1,14 +1,15 @@
-# 基于 n8n 官方镜像
-FROM n8nio/n8n:2.3.4
+# 使用 n8n 官方运行器镜像作为基础
+FROM n8nio/runners:latest
 
 # 切换到 root 用户来安装软件
 USER root
 
-# 安装 Python3 和 PIP
-RUN apk add --update --no-cache python3 py3-pip
+# 使用 uv 安装 pandas 等库到 n8n Python 运行器的虚拟环境
+RUN uv pip install --python /opt/runners/task-runner-python/.venv/bin/python \
+    pandas \
+    openpyxl \
+    requests \
+    numpy
 
-# (可选) 如果你需要 pandas, numpy 等库，在这里安装
-# RUN pip3 install pandas requests
-
-# 切回 n8n 默认用户 (非常重要，否则启动会报错)
-USER node
+# 切回默认用户
+USER runner
