@@ -1,0 +1,75 @@
+{
+  "name": "UpAndDownloadFiles",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "input_files",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "pdf_input",
+              "fieldType": "file",
+              "multipleFiles": false,
+              "acceptFileTypes": ".pdf"
+            },
+            {
+              "fieldLabel": "excel_input",
+              "fieldType": "file",
+              "multipleFiles": false,
+              "acceptFileTypes": ".xlsx",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "e6094b61-376e-4d6a-971c-e8f907c7e3e5",
+      "name": "On form submission",
+      "webhookId": "1115adb1-ebd1-4387-b3c0-f4022155eaa9"
+    },
+    {
+      "parameters": {
+        "language": "pythonNative",
+        "pythonCode": "import io\nimport base64\nfrom openpyxl import load_workbook\nfrom pathlib import Path\n\nitem = _items[0]\n\ntry:\n    binary_data = item['binary']\n    excel_input = binary_data['excel_input']\n    file_id = excel_input['id']\n    \n    if file_id.startswith('filesystem-v2:'):\n        relative_path = file_id.replace('filesystem-v2:', '')\n        file_path = '/home/node/.n8n/binaryData/' + relative_path\n        \n        # 用 pathlib 读取文件内容\n        file_bytes = Path(file_path).read_bytes()\n        \n        # 用 BytesIO 包装，这样 openpyxl 就不会检查文件扩展名\n        wb = load_workbook(io.BytesIO(file_bytes))\n        ws = wb.active\n        \n        # 找到最后一行\n        last_row = ws.max_row + 1\n        \n        # 在最后一行第一列写入 \"n8n测试用\"\n        ws.cell(row=last_row, column=1, value=\"n8n测试用\")\n        \n        # 保存到内存\n        output_stream = io.BytesIO()\n        wb.save(output_stream)\n        \n        output_base64 = base64.b64encode(output_stream.getvalue()).decode('utf-8')\n        \n        return [\n            {\n                \"json\": {\"status\": \"success\", \"last_row\": last_row},\n                \"binary\": {\n                    \"excel_output\": {\n                        \"data\": output_base64,\n                        \"fileName\": excel_input.get('fileName', 'modified.xlsx'),\n                        \"fileExtension\": \"xlsx\",\n                        \"mimeType\": \"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet\"\n                    }\n                }\n            }\n        ]\n    else:\n        return [{\"json\": {\"error\": \"Unknown file format: \" + file_id}}]\n        \nexcept Exception as e:\n    return [{\"json\": {\"error\": str(e)}}]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "29601e94-5a8b-4d3c-a822-0aa6bd07214a",
+      "name": "Code in Python (Native)"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Code in Python (Native)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "51e43799-99f1-4044-b99e-146340da00d1",
+  "meta": {
+    "instanceId": "525e829ee3d47ef9c303234819a10bc60139257ae54e0244d89c61b1c622671a"
+  },
+  "id": "Wv5PyZxfI5A7NHYg",
+  "tags": []
+}
